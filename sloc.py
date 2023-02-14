@@ -5,6 +5,7 @@ from keras.layers import Embedding, Dense, GRU
 from keras.models import Sequential
 from keras.utils import to_categorical
 from keras.optimizers import Adam
+import matplotlib.pyplot as plt
 import pickle
 import numpy as np
 import os
@@ -20,7 +21,7 @@ print("The Last Line: ", lines[-1])
 data = ""
 for i in lines:
     data = ' '. join(lines)
-  
+    
 data = data.replace('\n', '').replace('\r', '').replace('\ufeff', '').replace('"','')
 data[:360]
 
@@ -40,7 +41,6 @@ vocab_size = len(tokenizer.word_index) + 1
 print(vocab_size)
 
 sequences = []
-
 for i in range(3, len(sequence_data)):
     words = sequence_data[i-3:i+1]
     sequences.append(words)
@@ -71,8 +71,8 @@ X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.
 
 model = Sequential()
 model.add(Embedding(vocab_size, 50, input_length=3))
-model.add(GRU(1000, return_sequences=True))
-model.add(GRU(1000))
+model.add(LSTM(1000, return_sequences=True))
+model.add(LSTM(1000))
 model.add(Dense(1000, activation="relu"))
 model.add(Dense(vocab_size, activation='softmax'))
 model.summary()
@@ -80,25 +80,15 @@ model.summary()
 from keras.callbacks import ModelCheckpoint
 from keras.callbacks import ReduceLROnPlateau
 
-
-checkpoint = ModelCheckpoint("nextword36.h5", monitor='loss', verbose=1,save_best_only=True)
+checkpoint = ModelCheckpoint("nextword37.h5", monitor='loss', verbose=1,save_best_only=True)
 reduce = ReduceLROnPlateau(monitor='loss', factor=0.2, patience=3, min_lr=0.0001, verbose = 1)
 
-from keras.callbacks import TensorBoard
-logdir='logsnextword1'
-tensorboard_Visualization = TensorBoard(log_dir=logdir)
+model.compile(loss="categorical_crossentropy", optimizer=Adam(lr=0.001),metrics=['accuracy'])
+history =  model.fit(X, y, epochs=3, batch_size=64, validation_data=(X_val, y_val),callbacks=[checkpoint,reduce])
+model.save('/content/drive/MyDrive/Colab Notebooks/nextword37.h5',overwrite=True)
 
-model.compile(loss="categorical_crossentropy", optimizer=Adam(lr=0.0001),metrics=['accuracy'])
-history =  model.fit(X, y, epochs=3, batch_size=64, validation_data=(X_val, y_val),callbacks=[checkpoint,reduce,tensorboard_Visualization])
-model.save('/content/drive/MyDrive/Colab Notebooks/nextword36.h5',overwrite=True)
-
-%load_ext tensorboard
-%tensorboard --logdir logsnextword1
-
-import matplotlib.pyplot as plt
 loss = history.history['loss']
 val_loss = history.history['val_loss']
-# Plot the loss graph
 plt.plot(loss, label='Training Loss')
 plt.plot(val_loss, label='Validation Loss')
 plt.legend()
@@ -107,7 +97,6 @@ plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.show()
 
-import matplotlib.pyplot as plt
 plt.plot(history.history['accuracy'])
 plt.plot(history.history['val_accuracy'])
 plt.title('Model Accuracy')
