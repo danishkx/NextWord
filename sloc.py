@@ -84,7 +84,7 @@ checkpoint = ModelCheckpoint("nextword37.h5", monitor='loss', verbose=1,save_bes
 reduce = ReduceLROnPlateau(monitor='loss', factor=0.2, patience=3, min_lr=0.0001, verbose = 1)
 
 model.compile(loss="categorical_crossentropy", optimizer=Adam(lr=0.001),metrics=['accuracy'])
-history =  model.fit(X, y, epochs=3, batch_size=64, validation_data=(X_val, y_val),callbacks=[checkpoint,reduce])
+history =  model.fit(X, y, epochs=30, batch_size=64, validation_data=(X_val, y_val),callbacks=[checkpoint,reduce])
 model.save('/content/drive/MyDrive/Colab Notebooks/nextword37.h5',overwrite=True)
 
 loss = history.history['loss']
