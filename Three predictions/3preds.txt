@@ -1,0 +1,64 @@
+import tensorflow
+from tensorflow import keras
+from keras.models import load_model
+import numpy as np
+import pickle
+import streamlit as st
+
+
+page = """
+<style>
+[data-testid="stSidebar"]{
+
+background-image: url(https://miro.medium.com/max/1400/1*U0hBA8NnTD6l7L8Z2j-eiQ.jpeg);
+background-color: rgba(0, 0, 0, 0.5);
+opacity: 0.5;
+background-size: cover;
+}
+</style>
+"""
+
+#a59df8
+st.markdown(page,unsafe_allow_html=True)
+st.title("Next Word Prediction")
+
+model = load_model('C:/Users/Admin/Documents/Project/modelnew/nextword40.h5')
+tokenizer = pickle.load(open('C:/Users/Admin/Documents/Project/modelnew/tokenizer40.pkl', 'rb'))
+
+st.write("Long Short-Term Memory")
+text = st.text_input("Enter your line: ")
+text1=text
+
+
+if st.button("Predict"):
+    text = text.split(" ")
+    text = text[-3:]
+    predictions = []
+    for i in range(3):
+        predicted_words = []
+        for j in range(3):
+            sequence = tokenizer.texts_to_sequences([text])
+            sequence = np.array(sequence)
+            preds = model.predict(sequence)
+            top_prediction = np.argmax(preds[0])
+            predicted_word = ""
+            for key, value in tokenizer.word_index.items():
+                if value == top_prediction:
+                    predicted_word = key
+                    break
+            predicted_words.append(predicted_word)
+            text.append(predicted_word)
+            text = text[1:]
+        predictions.append(predicted_words)
+    for i, words in enumerate(predictions):
+        st.write(f"Prediction {i + 1}: {' '.join(words)}")
+    selected_prediction = st.selectbox("Please select a prediction", options=[1, 2, 3])
+    selected_words = predictions[selected_prediction - 1]
+    selected_sentence = text1 + " " + ' '.join(selected_words)
+    st.write("You selected: " + selected_sentence)
+
+if st.button("Clear"):
+    text = " "
+    st.empty()
+
+
